@@ -1,4 +1,4 @@
-import {Body, Controller, Post, Req, UseGuards} from '@nestjs/common';
+import {Body, Controller, Post, Get, NotFoundException, Param, Req, UseGuards} from '@nestjs/common';
 import {AuthService} from "./auth.service";
 import {AuthRequestOtpDto} from "./dto/auth-request-otp.dto";
 import {AuthVerifyOtpDto} from "./dto/auth-verify-otp.dto";
@@ -21,4 +21,19 @@ export class AuthController {
     async verifyOtp(@Body() dto: AuthVerifyOtpDto, @Req() req: Request) {
         return this.authService.verifyOtp(dto, req.language);
     }
+
+    @UseGuards(ApiKeyGuard)
+    @Get('last-seen')
+    async getLastSeen(@Param('customerId') customerId: string) {
+        console.log('🎯 getLastSeen hit for', customerId);
+        const user = await this.authService.findByCustomerId(customerId);
+        if (!user) {
+            throw new NotFoundException('User not found');
+        }
+        return {
+            customerId,
+            lastSeenAt: user.updated_at,
+        };
+    }
+
 }

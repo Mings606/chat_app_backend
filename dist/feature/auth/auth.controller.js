@@ -41,6 +41,19 @@ let AuthController = class AuthController {
             return this.authService.verifyOtp(dto, req.language);
         });
     }
+    getLastSeen(customerId) {
+        return __awaiter(this, void 0, void 0, function* () {
+            console.log('🎯 getLastSeen hit for', customerId);
+            const user = yield this.authService.findByCustomerId(customerId);
+            if (!user) {
+                throw new common_1.NotFoundException('User not found');
+            }
+            return {
+                customerId,
+                lastSeenAt: user.updated_at,
+            };
+        });
+    }
 };
 exports.AuthController = AuthController;
 __decorate([
@@ -61,6 +74,14 @@ __decorate([
     __metadata("design:paramtypes", [auth_verify_otp_dto_1.AuthVerifyOtpDto, Object]),
     __metadata("design:returntype", Promise)
 ], AuthController.prototype, "verifyOtp", null);
+__decorate([
+    (0, common_1.UseGuards)(api_key_guard_1.ApiKeyGuard),
+    (0, common_1.Get)('last-seen'),
+    __param(0, (0, common_1.Param)('customerId')),
+    __metadata("design:type", Function),
+    __metadata("design:paramtypes", [String]),
+    __metadata("design:returntype", Promise)
+], AuthController.prototype, "getLastSeen", null);
 exports.AuthController = AuthController = __decorate([
     (0, common_1.Controller)('auth'),
     __metadata("design:paramtypes", [auth_service_1.AuthService])

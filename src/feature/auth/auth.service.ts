@@ -160,6 +160,10 @@ export class AuthService {
         }, this.i18n.getMessage(language, isNewUser ? 'REGISTER_SUCCESS' : 'LOGIN_SUCCESS'));
     }
 
+    async findByCustomerId(customerId: string) {
+        return await this.userRepo.findOne({ where: { customer_id: customerId } });
+    }
+
     private async generateNextCustomerId(): Promise<string> {
         const lastUser = await this.userRepo.createQueryBuilder('user')
             .orderBy('user.customer_id', 'DESC')

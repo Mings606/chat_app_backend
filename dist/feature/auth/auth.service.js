@@ -155,6 +155,11 @@ let AuthService = class AuthService {
             }, this.i18n.getMessage(language, isNewUser ? 'REGISTER_SUCCESS' : 'LOGIN_SUCCESS'));
         });
     }
+    findByCustomerId(customerId) {
+        return __awaiter(this, void 0, void 0, function* () {
+            return yield this.userRepo.findOne({ where: { customer_id: customerId } });
+        });
+    }
     generateNextCustomerId() {
         return __awaiter(this, void 0, void 0, function* () {
             const lastUser = yield this.userRepo.createQueryBuilder('user')

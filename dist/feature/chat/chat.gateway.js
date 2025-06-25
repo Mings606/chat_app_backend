@@ -31,10 +31,12 @@ const typeorm_1 = require("@nestjs/typeorm");
 const contact_entity_1 = require("../contact/entities/contact.entity");
 const typeorm_2 = require("typeorm");
 const typing_dto_1 = require("./dto/typing.dto");
+const user_entity_1 = require("../auth/entities/user.entity");
 let ChatGateway = class ChatGateway {
-    constructor(chatService, contactRepo) {
+    constructor(chatService, contactRepo, userRepo) {
         this.chatService = chatService;
         this.contactRepo = contactRepo;
+        this.userRepo = userRepo;
         this.connectedClients = new Map();
     }
     afterInit(server) {
@@ -54,10 +56,14 @@ let ChatGateway = class ChatGateway {
         }
     }
     handleDisconnect(client) {
-        const user = client.data.user;
-        if (user === null || user === void 0 ? void 0 : user.customer_id) {
-            this.connectedClients.delete(user.customer_id);
-        }
+        return __awaiter(this, void 0, void 0, function* () {
+            const user = client.data.user;
+            if (user === null || user === void 0 ? void 0 : user.customer_id) {
+                this.connectedClients.delete(user.customer_id);
+                // Update user's last seen time
+                yield this.userRepo.update({ customer_id: user.customer_id }, { updated_at: new Date() });
+            }
+        });
     }
     handleAuth(client, payload) {
         return __awaiter(this, void 0, void 0, function* () {
@@ -351,6 +357,8 @@ __decorate([
 exports.ChatGateway = ChatGateway = __decorate([
     (0, websockets_1.WebSocketGateway)({ cors: true }),
     __param(1, (0, typeorm_1.InjectRepository)(contact_entity_1.Contact)),
+    __param(2, (0, typeorm_1.InjectRepository)(user_entity_1.UserEntity)),
     __metadata("design:paramtypes", [chat_service_1.ChatService,
+        typeorm_2.Repository,
         typeorm_2.Repository])
 ], ChatGateway);

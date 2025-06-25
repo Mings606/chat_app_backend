@@ -13,6 +13,7 @@ import {InjectRepository} from "@nestjs/typeorm";
 import {Contact} from "../contact/entities/contact.entity";
 import {Repository} from "typeorm";
 import {TypingDto} from './dto/typing.dto';
+import { UserEntity } from '../auth/entities/user.entity';
 
 @WebSocketGateway({cors: true})
 export class ChatGateway implements OnGatewayInit, OnGatewayConnection, OnGatewayDisconnect {
@@ -21,7 +22,9 @@ export class ChatGateway implements OnGatewayInit, OnGatewayConnection, OnGatewa
 
     constructor(private chatService: ChatService,
                 @InjectRepository(Contact)
-                private readonly contactRepo: Repository<Contact>) {
+                private readonly contactRepo: Repository<Contact>,
+                @InjectRepository(UserEntity)
+                private readonly userRepo: Repository<UserEntity>) {
     }
 
     afterInit(server: Server) {
@@ -43,10 +46,16 @@ export class ChatGateway implements OnGatewayInit, OnGatewayConnection, OnGatewa
         }
     }
 
-    handleDisconnect(client: AuthenticatedSocket) {
+    async handleDisconnect(client: AuthenticatedSocket) {
         const user = client.data.user;
         if (user?.customer_id) {
             this.connectedClients.delete(user.customer_id);
+
+            // Update user's last seen time
+            await this.userRepo.update(
+                { customer_id: user.customer_id },
+                { updated_at: new Date() }
+            );
         }
     }
 
