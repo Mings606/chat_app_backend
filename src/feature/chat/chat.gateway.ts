@@ -12,6 +12,7 @@ import {GetMessagesDto} from "./dto/get-message.dto";
 import {InjectRepository} from "@nestjs/typeorm";
 import {Contact} from "../contact/entities/contact.entity";
 import {Repository} from "typeorm";
+import {TypingDto} from './dto/typing.dto';
 
 @WebSocketGateway({cors: true})
 export class ChatGateway implements OnGatewayInit, OnGatewayConnection, OnGatewayDisconnect {
@@ -281,5 +282,29 @@ export class ChatGateway implements OnGatewayInit, OnGatewayConnection, OnGatewa
             return {status: false, code: 400, msg: error.message};
         }
     }
+
+    @SubscribeMessage('typing_start')
+    handleTypingStart(@MessageBody() data: TypingDto,@ConnectedSocket() client: AuthenticatedSocket,): { status: boolean; msg: string } {
+        console.log('✍️ Typing start:', data);
+
+        // ✅ Broadcast to others in the same room
+        client.to(data.conversationId).emit('typing_start', data.customerId);
+
+        // ✅ Send acknowledgment back to sender
+        return { status: true, msg: 'Typing started broadcasted' };
+    }
+
+    @SubscribeMessage('typing_stop')
+    handleTypingStop(@MessageBody() data: TypingDto,@ConnectedSocket() client: AuthenticatedSocket,
+    ...args: any[] // Capture the ack function manually
+    ) {
+        const ack = typeof args[0] === 'function' ? args[0] : undefined;
+
+        console.log(`🛑 typing_stop by ${data.customerId} in conversation ${data.conversationId}`);
+        client.to(data.conversationId).emit('typing_stop', data.customerId);
+
+        if (ack) ack({ status: true, msg: 'Typing stopped' });
+    }
+
 
 }

@@ -30,6 +30,7 @@ const get_message_dto_1 = require("./dto/get-message.dto");
 const typeorm_1 = require("@nestjs/typeorm");
 const contact_entity_1 = require("../contact/entities/contact.entity");
 const typeorm_2 = require("typeorm");
+const typing_dto_1 = require("./dto/typing.dto");
 let ChatGateway = class ChatGateway {
     constructor(chatService, contactRepo) {
         this.chatService = chatService;
@@ -252,6 +253,21 @@ let ChatGateway = class ChatGateway {
             }
         });
     }
+    handleTypingStart(data, client) {
+        console.log('✍️ Typing start:', data);
+        // ✅ Broadcast to others in the same room
+        client.to(data.conversationId).emit('typing_start', data.customerId);
+        // ✅ Send acknowledgment back to sender
+        return { status: true, msg: 'Typing started broadcasted' };
+    }
+    handleTypingStop(data, client, ...args // Capture the ack function manually
+    ) {
+        const ack = typeof args[0] === 'function' ? args[0] : undefined;
+        console.log(`🛑 typing_stop by ${data.customerId} in conversation ${data.conversationId}`);
+        client.to(data.conversationId).emit('typing_stop', data.customerId);
+        if (ack)
+            ack({ status: true, msg: 'Typing stopped' });
+    }
 };
 exports.ChatGateway = ChatGateway;
 __decorate([
@@ -316,6 +332,22 @@ __decorate([
     __metadata("design:paramtypes", [Object, Object, Function]),
     __metadata("design:returntype", Promise)
 ], ChatGateway.prototype, "handleMarkAsRead", null);
+__decorate([
+    (0, websockets_1.SubscribeMessage)('typing_start'),
+    __param(0, (0, websockets_1.MessageBody)()),
+    __param(1, (0, websockets_1.ConnectedSocket)()),
+    __metadata("design:type", Function),
+    __metadata("design:paramtypes", [typing_dto_1.TypingDto, Object]),
+    __metadata("design:returntype", Object)
+], ChatGateway.prototype, "handleTypingStart", null);
+__decorate([
+    (0, websockets_1.SubscribeMessage)('typing_stop'),
+    __param(0, (0, websockets_1.MessageBody)()),
+    __param(1, (0, websockets_1.ConnectedSocket)()),
+    __metadata("design:type", Function),
+    __metadata("design:paramtypes", [typing_dto_1.TypingDto, Object, Object]),
+    __metadata("design:returntype", void 0)
+], ChatGateway.prototype, "handleTypingStop", null);
 exports.ChatGateway = ChatGateway = __decorate([
     (0, websockets_1.WebSocketGateway)({ cors: true }),
     __param(1, (0, typeorm_1.InjectRepository)(contact_entity_1.Contact)),
