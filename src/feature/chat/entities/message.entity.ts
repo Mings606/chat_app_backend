@@ -4,6 +4,7 @@ import {
     Column,
     CreateDateColumn,
     UpdateDateColumn,
+    Index
 } from 'typeorm';
 
 export enum MessageStatus {
@@ -15,10 +16,12 @@ export enum MessageStatus {
 }
 
 @Entity('message')
+@Index('ft_content', ['content'], { fulltext: true }) // ✅ FULLTEXT INDEX here
 export class MessageEntity {
     @PrimaryGeneratedColumn('uuid')
     id!: string;
 
+    @Index()
     @Column({nullable: false})
     conversationId!: string;
 
@@ -28,9 +31,11 @@ export class MessageEntity {
     @Column({type: 'text', nullable: true})
     content?: string;
 
+    @Index()
     @Column({nullable: false})
     senderCustomerId!: string;
 
+    @Index()
     @Column({nullable: false})
     receiverCustomerId!: string;
 

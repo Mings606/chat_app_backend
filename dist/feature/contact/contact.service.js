@@ -57,7 +57,8 @@ let ContactService = class ContactService {
                 }, 400);
             }
             let contact = yield this.contactRepo.findOne({
-                where: { customer_id: receiver.customer_id },
+                where: { customer_id: receiver.customer_id,
+                    from_customer_id: customerId },
             });
             if (contact) {
                 contact.first_name = first_name;
@@ -65,6 +66,7 @@ let ContactService = class ContactService {
             }
             else {
                 contact = this.contactRepo.create({
+                    from_customer_id: customerId,
                     customer_id: receiver.customer_id,
                     first_name,
                     last_name,

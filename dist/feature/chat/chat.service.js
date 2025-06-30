@@ -30,13 +30,15 @@ const chat_list_entity_1 = require("./entities/chat_list.entity");
 const user_entity_1 = require("../auth/entities/user.entity");
 const conversation_entity_1 = require("./entities/conversation.entity");
 const conversation_participants_entity_1 = require("./entities/conversation_participants.entity");
+const contact_entity_1 = require("../contact/entities/contact.entity");
 let ChatService = class ChatService {
-    constructor(messageRepo, chatListRepo, userRepo, conversationRepository, conversationParticipantRepository) {
+    constructor(messageRepo, chatListRepo, userRepo, conversationRepository, conversationParticipantRepository, contactRepo) {
         this.messageRepo = messageRepo;
         this.chatListRepo = chatListRepo;
         this.userRepo = userRepo;
         this.conversationRepository = conversationRepository;
         this.conversationParticipantRepository = conversationParticipantRepository;
+        this.contactRepo = contactRepo;
     }
     findSenderId(senderCustomerId) {
         return __awaiter(this, void 0, void 0, function* () {
@@ -244,6 +246,26 @@ let ChatService = class ChatService {
             unreadCount: entity.unreadCount,
         };
     }
+    searchMessages(customerId, keyword) {
+        return __awaiter(this, void 0, void 0, function* () {
+            return yield this.messageRepo
+                .createQueryBuilder('message')
+                .where('MATCH(message.content) AGAINST (:keyword IN BOOLEAN MODE)', { keyword })
+                .andWhere('(message.senderCustomerId = :customerId OR message.receiverCustomerId = :customerId)', { customerId })
+                .orderBy('message.createdAt', 'DESC')
+                .limit(50)
+                .getMany();
+        });
+    }
+    searchContacts(customerId, keyword) {
+        return __awaiter(this, void 0, void 0, function* () {
+            return this.contactRepo
+                .createQueryBuilder('contact')
+                .where('contact.from_customer_id = :customerId', { customerId })
+                .andWhere(`MATCH(contact.first_name, contact.last_name, contact.phone_number) AGAINST(:keyword IN NATURAL LANGUAGE MODE)`, { keyword })
+                .getMany();
+        });
+    }
 };
 exports.ChatService = ChatService;
 exports.ChatService = ChatService = __decorate([
@@ -253,7 +275,9 @@ exports.ChatService = ChatService = __decorate([
     __param(2, (0, typeorm_1.InjectRepository)(user_entity_1.UserEntity)),
     __param(3, (0, typeorm_1.InjectRepository)(conversation_entity_1.ConversationEntity)),
     __param(4, (0, typeorm_1.InjectRepository)(conversation_participants_entity_1.ConversationParticipantsEntity)),
+    __param(5, (0, typeorm_1.InjectRepository)(contact_entity_1.Contact)),
     __metadata("design:paramtypes", [typeorm_2.Repository,
+        typeorm_2.Repository,
         typeorm_2.Repository,
         typeorm_2.Repository,
         typeorm_2.Repository,

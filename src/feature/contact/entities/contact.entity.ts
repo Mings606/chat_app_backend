@@ -3,7 +3,8 @@ import {
     CreateDateColumn,
     Entity,
     PrimaryGeneratedColumn,
-    UpdateDateColumn
+    UpdateDateColumn,
+    Index
 } from "typeorm";
 
 @Entity('contacts')
@@ -11,6 +12,11 @@ export class Contact {
     @PrimaryGeneratedColumn('uuid')
     id!: string;
 
+    @Index()
+    @Column({nullable: true})
+    from_customer_id?: string;
+
+    @Index()
     @Column({nullable: true})
     customer_id?: string;
 

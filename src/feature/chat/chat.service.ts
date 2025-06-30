@@ -8,6 +8,7 @@ import {SendMessageDto} from "./dto/send-message.dto";
 import {ConversationEntity} from "./entities/conversation.entity";
 import {ConversationParticipantsEntity} from "./entities/conversation_participants.entity";
 import {ChatListDto} from "./dto/chat_list.dto";
+import {Contact} from "../contact/entities/contact.entity";
 
 @Injectable()
 export class ChatService {
@@ -22,6 +23,8 @@ export class ChatService {
         private readonly conversationRepository: Repository<ConversationEntity>,
         @InjectRepository(ConversationParticipantsEntity)
         private readonly conversationParticipantRepository: Repository<ConversationParticipantsEntity>,
+        @InjectRepository(Contact)
+        private readonly contactRepo: Repository<Contact>,
     ) {
     }
 
@@ -262,4 +265,23 @@ export class ChatService {
         };
     }
 
+    async searchMessages(customerId: string, keyword: string) {
+        return await this.messageRepo
+          .createQueryBuilder('message')
+          .where('MATCH(message.content) AGAINST (:keyword IN BOOLEAN MODE)', { keyword })
+          .andWhere('(message.senderCustomerId = :customerId OR message.receiverCustomerId = :customerId)', { customerId })
+          .orderBy('message.createdAt', 'DESC')
+          .limit(50)
+          .getMany();
+      }
+      
+    
+    async searchContacts(customerId: string, keyword: string) {
+        return this.contactRepo
+        .createQueryBuilder('contact')
+        .where('contact.from_customer_id = :customerId', { customerId })
+        .andWhere(`MATCH(contact.first_name, contact.last_name, contact.phone_number) AGAINST(:keyword IN NATURAL LANGUAGE MODE)`, { keyword })
+        .getMany();
+    }
+  
 }

@@ -316,4 +316,52 @@ export class ChatGateway implements OnGatewayInit, OnGatewayConnection, OnGatewa
     }
 
 
+    @SubscribeMessage('search_messages')
+    async handleSearchMessages(@ConnectedSocket() client: AuthenticatedSocket,@MessageBody() data: { keyword: string },ack?: Function) 
+    {
+        const customerId = client.data.user?.customer_id;
+        if (!customerId) {
+            const error = { status: false, msg: 'Unauthorized' };
+            if (ack) ack(error);
+            return error;
+        }
+
+        try {
+            console.log(customerId);
+            const result = await this.chatService.searchMessages(customerId, data.keyword);
+
+            const response = { status: true, result };
+            if (ack) ack(response);
+            return response;
+        } catch (error) {
+            const response = { status: false, msg: 'No record found' };
+            if (ack) ack(response);
+            return response;
+        }
+    }
+
+    @SubscribeMessage('search_contacts')
+    async handleSearchContacts(@ConnectedSocket() client: AuthenticatedSocket,@MessageBody() data: { keyword: string },ack?: Function) 
+    {
+        const customerId = client.data.user?.customer_id;
+        if (!customerId) {
+            const error = { status: false, msg: 'Unauthorized' };
+            if (ack) ack(error);
+            return error;
+        }
+
+        try {
+            console.log(customerId);
+            const result = await this.chatService.searchContacts(customerId, data.keyword);
+
+            const response = { status: true, result };
+            if (ack) ack(response);
+            return response;
+        } catch (error) {
+            const response = { status: false, msg: 'No record found' };
+            if (ack) ack(response);
+            return response;
+        }
+    }
+
 }

@@ -274,6 +274,58 @@ let ChatGateway = class ChatGateway {
         if (ack)
             ack({ status: true, msg: 'Typing stopped' });
     }
+    handleSearchMessages(client, data, ack) {
+        return __awaiter(this, void 0, void 0, function* () {
+            var _a;
+            const customerId = (_a = client.data.user) === null || _a === void 0 ? void 0 : _a.customer_id;
+            if (!customerId) {
+                const error = { status: false, msg: 'Unauthorized' };
+                if (ack)
+                    ack(error);
+                return error;
+            }
+            try {
+                console.log(customerId);
+                const result = yield this.chatService.searchMessages(customerId, data.keyword);
+                const response = { status: true, result };
+                if (ack)
+                    ack(response);
+                return response;
+            }
+            catch (error) {
+                const response = { status: false, msg: 'No record found' };
+                if (ack)
+                    ack(response);
+                return response;
+            }
+        });
+    }
+    handleSearchContacts(client, data, ack) {
+        return __awaiter(this, void 0, void 0, function* () {
+            var _a;
+            const customerId = (_a = client.data.user) === null || _a === void 0 ? void 0 : _a.customer_id;
+            if (!customerId) {
+                const error = { status: false, msg: 'Unauthorized' };
+                if (ack)
+                    ack(error);
+                return error;
+            }
+            try {
+                console.log(customerId);
+                const result = yield this.chatService.searchContacts(customerId, data.keyword);
+                const response = { status: true, result };
+                if (ack)
+                    ack(response);
+                return response;
+            }
+            catch (error) {
+                const response = { status: false, msg: 'No record found' };
+                if (ack)
+                    ack(response);
+                return response;
+            }
+        });
+    }
 };
 exports.ChatGateway = ChatGateway;
 __decorate([
@@ -354,6 +406,22 @@ __decorate([
     __metadata("design:paramtypes", [typing_dto_1.TypingDto, Object, Object]),
     __metadata("design:returntype", void 0)
 ], ChatGateway.prototype, "handleTypingStop", null);
+__decorate([
+    (0, websockets_1.SubscribeMessage)('search_messages'),
+    __param(0, (0, websockets_1.ConnectedSocket)()),
+    __param(1, (0, websockets_1.MessageBody)()),
+    __metadata("design:type", Function),
+    __metadata("design:paramtypes", [Object, Object, Function]),
+    __metadata("design:returntype", Promise)
+], ChatGateway.prototype, "handleSearchMessages", null);
+__decorate([
+    (0, websockets_1.SubscribeMessage)('search_contacts'),
+    __param(0, (0, websockets_1.ConnectedSocket)()),
+    __param(1, (0, websockets_1.MessageBody)()),
+    __metadata("design:type", Function),
+    __metadata("design:paramtypes", [Object, Object, Function]),
+    __metadata("design:returntype", Promise)
+], ChatGateway.prototype, "handleSearchContacts", null);
 exports.ChatGateway = ChatGateway = __decorate([
     (0, websockets_1.WebSocketGateway)({ cors: true }),
     __param(1, (0, typeorm_1.InjectRepository)(contact_entity_1.Contact)),

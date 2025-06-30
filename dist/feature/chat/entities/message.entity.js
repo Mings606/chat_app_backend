@@ -27,6 +27,7 @@ __decorate([
     __metadata("design:type", String)
 ], MessageEntity.prototype, "id", void 0);
 __decorate([
+    (0, typeorm_1.Index)(),
     (0, typeorm_1.Column)({ nullable: false }),
     __metadata("design:type", String)
 ], MessageEntity.prototype, "conversationId", void 0);
@@ -39,10 +40,12 @@ __decorate([
     __metadata("design:type", String)
 ], MessageEntity.prototype, "content", void 0);
 __decorate([
+    (0, typeorm_1.Index)(),
     (0, typeorm_1.Column)({ nullable: false }),
     __metadata("design:type", String)
 ], MessageEntity.prototype, "senderCustomerId", void 0);
 __decorate([
+    (0, typeorm_1.Index)(),
     (0, typeorm_1.Column)({ nullable: false }),
     __metadata("design:type", String)
 ], MessageEntity.prototype, "receiverCustomerId", void 0);
@@ -71,5 +74,6 @@ __decorate([
     __metadata("design:type", Date)
 ], MessageEntity.prototype, "updatedAt", void 0);
 exports.MessageEntity = MessageEntity = __decorate([
-    (0, typeorm_1.Entity)('message')
+    (0, typeorm_1.Entity)('message'),
+    (0, typeorm_1.Index)('ft_content', ['content'], { fulltext: true }) // ✅ FULLTEXT INDEX here
 ], MessageEntity);

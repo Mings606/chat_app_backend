@@ -49,7 +49,8 @@ export class ContactService {
         }
 
         let contact = await this.contactRepo.findOne({
-            where: {customer_id: receiver.customer_id},
+            where: {customer_id: receiver.customer_id,
+                    from_customer_id: customerId},
         });
 
         if (contact) {
@@ -57,6 +58,7 @@ export class ContactService {
             contact.last_name = last_name;
         } else {
             contact = this.contactRepo.create({
+                from_customer_id: customerId,
                 customer_id: receiver.customer_id,
                 first_name,
                 last_name,
